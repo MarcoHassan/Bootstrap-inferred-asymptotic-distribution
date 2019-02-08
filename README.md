@@ -31,7 +31,7 @@ It turns out that if the normality assumption of the simple OLS estimators is sa
 
 # Bootstrapped distribution of IV estimator
 
-For botha a two step least square estimation as well as a generalized method of moments estimation the underlying asymptotic distribution is not justified.
+For both a two step least square estimation as well as a generalized method of moments estimation the underlying asymptotic distribution is not justified.
 
 ![image](https://user-images.githubusercontent.com/42472072/52466921-7e8b8780-2b8c-11e9-93d9-9248d46205fe.png)
 
