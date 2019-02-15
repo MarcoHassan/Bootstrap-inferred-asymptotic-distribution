@@ -72,20 +72,6 @@ for (i in 1:nb){
 }
 ```
 
---> Not working: not converging
-
-bet2.2 = NULL; n2.2 = NROW(t1)
-for (i in 1:nb){
-  unifnum = sample(c(1:n2.2),n2.2,replace = T)	
-  LL <- function(beta0, beta1, mu, sigma) {
-    R = t1[unifnum, 1] - t2[unifnum,2] * beta1 - beta0
-    R = suppressWarnings(dnorm(R, mu, sigma))
-    -sum(log(R))}
-    
-    bet2.2[i] <- coef(mle(LL, start = list(beta0 = 5, beta1 = 0.5, mu = 0.08,
-                                           sigma=.7)))[2]
-}
-
 
 Plot results
 ```{r}
@@ -122,57 +108,6 @@ histo(bet, lm1)
 histo(bet2, lm2)
 ```
 
-Try model based resampling
-```{r}
-
-t3 <- as.data.frame(na.omit(cbind(X2_OLS$logpgp95, X2_OLS$avexpr)))
-colnames(t3) <-  cbind("Log", "Aver")
-
-anBase <- anova(lm(t3$Log ~ t3$Aver))
-Fbase <- anBase["t3$Aver", "F value"]
-pBase <- anBase["t3$AVer", "Pr(>F)"]
-
-#H0-Modell in Basisstichprobe anpassen
-fit0 <- lm(t3$Log  ~ 1) # Modellanpassung
-E <- residuals(fit0) # ursprüngliche Residuen
-Er <- E / sqrt(1-hatvalues(fit0)) # reskalierte Residuen
-Yhat <- fitted(fit0) # ursprüngliche Vorhersage
-# ANOVA-Parameter für ursprüngliche Gruppenzugehörigkeiten und Y*
-getAnova <- function(dat, idx) {
- Ystar <- Yhat + Er[idx] # Resample-AV Y* = Y^ + E*
- anBS <- anova(lm(Ystar ~ t3$Aver, data=dat)) # ANOVA Resample-AV
- anBS["t3$Aver", "F value"] # F*-Wert Replikation
-}
-
-nR <- 5000 # Anzahl Replikationen
-bsAnova <- boot(t3, statistic=getAnova, R=nR)
-
-## F* aus Bootstrap-Replikationen
-Fstar <- bsAnova$t
-# numerische Toleranz wg. Gleitkomma-Arithmetik
-tol <- .Machine$double.eps^0.5
-# Fstar größer Basis-F ODER Fstar ungefähr gleich Basis-F?
-FsIsGEQ <- (Fstar > Fbase) | (abs(Fstar - Fbase) < tol)
-# p-Wert: Anteil der mindestens so extremen F* wie Basis F
-(pValBS <- (sum(FsIsGEQ) + 1) / (length(Fstar) + 1))
-# Grafik: kumulierte relative Häufigkeiten von F*
-
-plot(Fstar, ecdf(Fstar)(Fstar), col="gray60", pch=1,
- xlab="f* bzw. f", ylab="P(F <= f)",
- main="F*: Kumulierte rel. Häufigkeiten und Verteilungsfunktion")
-# theoretische Verteilungsfunktion von t und Legende
-curve(pf(x, 1, 110), lwd=2, add=TRUE)
- legend(x="topleft", lty=c(NA, 1), pch=c(1, NA), lwd=c(2, 2),
- col=c("gray60", "black"), legend=c("F*", "F"))
-
-
-```
-
-
-
-
-
-
 Constructed test on real normal distributed variable 
 ```{r}
 eps <- rnorm(NROW(t1), 0, sd(base$avexpr))
@@ -200,7 +135,7 @@ confidence <- function(bet, lm1){
   
   boot_coorected_estim <- lm1$coefficients[2] - bias
   
-  ## Assuming normality, the approximate 95% confidence interval is given by CVd ± 1.96pVar(bootstrap)
+  ## Assuming normality, the approximate 95% confidence interval is given by CVd Â± 1.96pVar(bootstrap)
   
   Low <- lm1$coefficients[2] - bias - 1.96*sqrt(var(bet))
   High <- lm1$coefficients[2] - bias + 1.96*sqrt(var(bet))
